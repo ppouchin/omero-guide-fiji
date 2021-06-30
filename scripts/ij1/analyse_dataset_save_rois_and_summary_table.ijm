@@ -8,34 +8,41 @@ run("OMERO Extensions");
 
 connected = Ext.connectToOMERO(HOST, PORT, USERNAME, PASSWORD);
 
-setBatchMode("hide");
+table_name = "Summary_from_Fiji";
+
+setBatchMode(true);
 if(connected == "true") {
     images = Ext.list("images", "dataset", dataset_id);
-    imageIds = split(images, ",");
+    image_ids = split(images, ",");
     
-    for(i=0; i<imageIds.length; i++) {
-        ijId = Ext.getImage(imageIds[i]);
-        ijId = parseInt(ijId);
+    for(i=0; i<image_ids.length; i++) {
+	    // Open the image
+        ij_id = Ext.getImage(image_ids[i]);
+        ij_id = parseInt(ij_id);
         roiManager("reset");
+        // Analyse the images. This section could be replaced by any other macro
         run("8-bit");
+        //white might be required depending on the version of Fiji
         run("Auto Threshold", "method=MaxEntropy stack");
         run("Analyze Particles...", "size=10-Infinity pixel display clear add stack");
         run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding summarize feret's median stack display redirect=None decimal=3");
         roiManager("Measure");
-        nROIs = Ext.saveROIs(imageIds[i], "");
-        Ext.addToTable("Summary_from_Fiji", "Results", imageIds[i]);
-        print("Image " + imageIds[i] + ": " + nROIs + " ROI(s) saved.");
+        // Save the ROIs back to OMERO
+        nROIs = Ext.saveROIs(image_ids[i], "");
+        print("creating summary results for image ID " + image_ids[i]);
+        Ext.addToTable(table_name, "Results", image_ids[i]);
+        print("Image " + image_ids[i] + ": " + nROIs + " ROI(s) saved.");
         roiManager("reset");
         close("Results");
-        selectImage(ijId);
+        selectImage(ij_id);
         close();
     }
 }
-txt_file = "idr0021_merged_results.txt";
-Ext.saveTableAsTXT("Summary_from_Fiji", txt_file);
-Ext.saveTable("Summary_from_Fiji", "Dataset", dataset_id);
-Ext.addFile("Dataset", dataset_id, txt_file);
-File.delete(txt_file);
+txt_file = getDir("temp") + "idr0021_merged_results.txt";
+Ext.saveTableAsTXT(table_name, txt_file);
+Ext.saveTable(table_name, "Dataset", dataset_id);
+file_id = Ext.addFile("Dataset", dataset_id, txt_file);
+deleted = File.delete(txt_file);
 setBatchMode(false);
 
 Ext.disconnect();
