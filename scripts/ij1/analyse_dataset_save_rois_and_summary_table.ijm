@@ -23,7 +23,7 @@ if(connected == "true") {
         run("Set Measurements...", "area mean standard modal min centroid center perimeter bounding summarize feret's median stack display redirect=None decimal=3");
         roiManager("Measure");
         nROIs = Ext.saveROIs(imageIds[i], "");
-        Ext.addToTable(imageIds[i]);
+        Ext.addToTable("Summary_from_Fiji", "Results", imageIds[i]);
         print("Image " + imageIds[i] + ": " + nROIs + " ROI(s) saved.");
         roiManager("reset");
         close("Results");
@@ -31,8 +31,11 @@ if(connected == "true") {
         close();
     }
 }
-//TODO: Add method to save table as csv
-Ext.saveTable("Dataset", dataset_id, "Summary_from_Fiji");
+txt_file = "idr0021_merged_results.txt";
+Ext.saveTableAsTXT("Summary_from_Fiji", txt_file);
+Ext.saveTable("Summary_from_Fiji", "Dataset", dataset_id);
+Ext.addFile("Dataset", dataset_id, txt_file);
+File.delete(txt_file);
 setBatchMode(false);
 
 Ext.disconnect();
