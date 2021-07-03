@@ -8,7 +8,7 @@ run("OMERO Extensions");
 
 connected = Ext.connectToOMERO(HOST, PORT, USERNAME, PASSWORD);
 
-setBatchMode("hide");
+setBatchMode(true);
 if(connected == "true") {
     images = Ext.list("images", "dataset", dataset_id);
     image_ids = split(images, ",");
